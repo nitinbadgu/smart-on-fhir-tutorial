@@ -32,6 +32,12 @@
 
       cov.done(function (data) { sessionStorage.setItem('coverageDetails', JSON.stringify(data)); });
 
+      var org = smart.patient.api.fetchAll({
+        type: "Organization",
+      });
+
+      org.done(function (data) { sessionStorage.setItem('orgDetails', JSON.stringify(data)); });
+
         $.when(pt, obv).fail(onError);
 
         $.when(pt, obv).done(function(patient, obv) {
