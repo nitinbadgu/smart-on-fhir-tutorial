@@ -12,11 +12,11 @@
         var patient = smart.patient;
         var pt = patient.read();
 
-        var cov = smart.patient.api.fetchAll({
-          type: "Coverage",
-        });
+        // var cov = smart.patient.api.fetchAll({
+        //   type: "Coverage",
+        // });
   
-        cov.done(function (data) { sessionStorage.setItem('coverageDetails', JSON.stringify(data)); });
+        // cov.done(function (data) { sessionStorage.setItem('coverageDetails', JSON.stringify(data)); });
         
         var obv = smart.patient.api.fetchAll({
                     type: 'Observation',
@@ -29,7 +29,7 @@
                     }
                   });
 
-        obv.done(function (data) { sessionStorage.setItem('observationDetails', JSON.stringify(data)); });
+        //obv.done(function (data) { sessionStorage.setItem('observationDetails', JSON.stringify(data)); });
 
         $.when(pt, obv).fail(onError);
 
