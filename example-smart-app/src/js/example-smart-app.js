@@ -12,11 +12,7 @@
         var patient = smart.patient;
         var pt = patient.read();
 
-        // var cov = smart.patient.api.fetchAll({
-        //   type: "Coverage",
-        // });
-  
-        // cov.done(function (data) { sessionStorage.setItem('coverageDetails', JSON.stringify(data)); });
+        pt.done(function (data) { sessionStorage.setItem('patientDetails', JSON.stringify(data)); });
         
         var obv = smart.patient.api.fetchAll({
                     type: 'Observation',
@@ -28,8 +24,19 @@
                       }
                     }
                   });
+      obv.done(function (data) { sessionStorage.setItem('observationDetails', JSON.stringify(data)); });
 
-        //obv.done(function (data) { sessionStorage.setItem('observationDetails', JSON.stringify(data)); });
+      var cov = smart.patient.api.fetchAll({
+        type: "Coverage",
+      });
+
+      cov.done(function (data) { sessionStorage.setItem('coverageDetails', JSON.stringify(data)); });
+
+      var org = smart.patient.api.fetchAll({
+        type: "Organization",
+      });
+
+      org.done(function (data) { sessionStorage.setItem('orgDetails', JSON.stringify(data)); });
 
         $.when(pt, obv).fail(onError);
 
@@ -42,6 +49,7 @@
 
           if (typeof patient.name[0] !== 'undefined') {
             fname = patient.name[0].given.join(' ');
+           // lname = patient.name[0].family.join(' ');
             lname = patient.name[0].family;
           }
 
