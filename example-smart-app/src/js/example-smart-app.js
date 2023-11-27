@@ -38,6 +38,20 @@
 
       org.done(function (data) { sessionStorage.setItem('orgDetails', JSON.stringify(data)); });
 
+      var enc = smart.patient.api.fetchAll({
+        type: "Encounter",
+      });
+
+      // here, we are getting here first index of encounter Details array.
+
+      enc.done(function (data) { sessionStorage.setItem('encounterDetails', JSON.stringify(data[0])); });
+
+      var prac = smart.patient.api.fetchAll({
+        type: "Practitioner",
+      });
+
+      prac.done(function (data) { sessionStorage.setItem('practitionerDetails', JSON.stringify(data)); });
+
         $.when(pt, obv).fail(onError);
 
         $.when(pt, obv).done(function(patient, obv) {
