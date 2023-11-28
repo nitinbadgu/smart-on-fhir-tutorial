@@ -166,16 +166,17 @@
 
 /* checking for Cerner and FHIR Epic start*/
 
-export function extractData() {
-  var ret = $.Deferred();
- 
-  function onError() {
-    console.log("Loading error", arguments);
-    ret.reject();
-  }
- 
-  function onReady(smart) {
-    console.log("smart : ", smart);
+(function(window){
+  window.extractData = function() {
+    var ret = $.Deferred();
+
+    function onError() {
+      console.log('Loading error', arguments);
+      ret.reject();
+    }
+
+    function onReady(smart)  {
+      console.log("smart : ", smart);
     if (smart.hasOwnProperty("patient")) {
       var patient = smart.patient;
       var pt = patient.read();
@@ -437,54 +438,69 @@ export function extractData() {
     } else {
       onError();
     }
+    }
+
+    FHIR.oauth2.ready(onReady, onError);
+    return ret.promise();
+
+  };
+
+  function defaultPatient(){
+    return {
+      fname: {value: ''},
+      lname: {value: ''},
+      gender: {value: ''},
+      birthdate: {value: ''},
+      height: {value: ''},
+      systolicbp: {value: ''},
+      diastolicbp: {value: ''},
+      ldl: {value: ''},
+      hdl: {value: ''},
+    };
   }
- 
-  FHIR.oauth2.ready(onReady, onError);
-  return ret.promise();
-}
- 
-/* Passing client id and scope to FHIR_extract function from launch component */
-export function FHIR_extract(client_id, scope) {
-  FHIR.oauth2.authorize({
-    client_id: client_id,
-    scope: scope,
-    redirect_uri: 'http://localhost:4200'
-  });
- 
-  //alert("index");
-}
- 
-export function drawVisualization(p) {
-  $("#holder").show();
-  $("#loading").hide();
-  $("#patient_id").html(p.patient_id);
-  $("#fname").html(p.fname);
-  $("#lname").html(p.lname);
-  $("#gender").html(p.gender);
-  $("#birthdate").html(p.birthdate);
-}
-(function (window) {
-  function defaultPatient() {
-    document.getElementById("coverageResult").innerHTML = "";
-    document.getElementById("pateint_id").innerHTML = "";
-    document.getElementById("fname").innerHTML = "";
-    document.getElementById("lname").innerHTML = "";
-    document.getElementById("gender").innerHTML = "";
-    document.getElementById("birthdate").innerHTML = "";
+
+  function getBloodPressureValue(BPObservations, typeOfPressure) {
+    var formattedBPObservations = [];
+    BPObservations.forEach(function(observation){
+      var BP = observation.component.find(function(component){
+        return component.code.coding.find(function(coding) {
+          return coding.code == typeOfPressure;
+        });
+      });
+      if (BP) {
+        observation.valueQuantity = BP.valueQuantity;
+        formattedBPObservations.push(observation);
+      }
+    });
+
+    return getQuantityValueAndUnit(formattedBPObservations[0]);
   }
- 
+
   function getQuantityValueAndUnit(ob) {
-    if (
-      typeof ob != "undefined" &&
-      typeof ob.valueQuantity != "undefined" &&
-      typeof ob.valueQuantity.value != "undefined" &&
-      typeof ob.valueQuantity.unit != "undefined"
-    ) {
-      return ob.valueQuantity.value + " " + ob.valueQuantity.unit;
+    if (typeof ob != 'undefined' &&
+        typeof ob.valueQuantity != 'undefined' &&
+        typeof ob.valueQuantity.value != 'undefined' &&
+        typeof ob.valueQuantity.unit != 'undefined') {
+          return ob.valueQuantity.value + ' ' + ob.valueQuantity.unit;
     } else {
       return undefined;
     }
   }
+
+  window.drawVisualization = function(p) {
+    $('#holder').show();
+    $('#loading').hide();
+    $('#fname').html(p.fname);
+    $('#lname').html(p.lname);
+    $('#gender').html(p.gender);
+    $('#birthdate').html(p.birthdate);
+    $('#height').html(p.height);
+    $('#systolicbp').html(p.systolicbp);
+    $('#diastolicbp').html(p.diastolicbp);
+    $('#ldl').html(p.ldl);
+    $('#hdl').html(p.hdl);
+  };
+
 })(window);
 
 /* checking for Cerner and FHIR Epic end*/
