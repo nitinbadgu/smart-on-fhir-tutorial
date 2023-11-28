@@ -416,6 +416,10 @@
         var lname = "";
  
         var patient_id = patient.id;
+
+        console.log("Patient Details:", patient);
+        console.log("Patient ID:", patient_id);
+        console.log("Patient dot ID:", patient.id);
  
         if (typeof patient.name[0] !== "undefined") {
           fname = patient.name[0].given.join(" ");
