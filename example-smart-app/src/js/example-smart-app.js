@@ -1,3 +1,4 @@
+/* its working for smart launcher start*/
 (function(window){
   window.extractData = function() {
     var ret = $.Deferred();
@@ -160,3 +161,330 @@
   };
 
 })(window);
+/* its working for smart launcher end*/
+
+
+/* checking for Cerner and FHIR Epic start*/
+
+export function extractData() {
+  var ret = $.Deferred();
+ 
+  function onError() {
+    console.log("Loading error", arguments);
+    ret.reject();
+  }
+ 
+  function onReady(smart) {
+    console.log("smart : ", smart);
+    if (smart.hasOwnProperty("patient")) {
+      var patient = smart.patient;
+      var pt = patient.read();
+ 
+      pt.done(function (data) { sessionStorage.setItem('patientDetails', JSON.stringify(data)); });
+ 
+      var obv = smart.patient.api.fetchAll({
+        type: "Observation",
+        query: {
+          code: {
+            $or: [
+              "http://loinc.org|8302-2",
+              "http://loinc.org|8462-4",
+              "http://loinc.org|8480-6",
+              "http://loinc.org|2085-9",
+              "http://loinc.org|2089-1",
+              "http://loinc.org|55284-4",
+            ],
+          },
+        },
+      });
+ 
+      obv.done(function (data) { sessionStorage.setItem('observationDetails', JSON.stringify(data)); });
+ 
+      var cov = smart.patient.api.fetchAll({
+        type: "Coverage",
+      });
+ 
+      cov.done(function (data) { sessionStorage.setItem('coverageDetails', JSON.stringify(data)); });
+ 
+      const host = 'fhir-ehr-code.cerner.com';
+      const instance = 'ec2458f2-1e24-41c8-b71b-0e701af7583d';
+      // Specify the base URL
+      const covBaseUrl = `https://${host}/r4/${instance}/Coverage`;
+ 
+ 
+      // Construct the URL with query parameters
+      const covApiUrl = `${covBaseUrl}?patient=${patient.id}`;
+      const bearerToken = JSON.parse(sessionStorage.getItem('tokenResponse')).access_token;
+      var coverageDetails;
+      // Define additional options for the fetch call
+      const fetchOptions = {
+        method: "GET", // or "POST", "PUT", etc.
+        headers: {
+          Accept: "application/fhir+json", // Replace with the appropriate media type
+          Authorization: `Bearer ${bearerToken}`,
+          // Add other headers if needed
+        },
+        // Add other options like body, credentials, etc.
+      };
+      // Make the fetch API call
+      fetch(covApiUrl, fetchOptions)
+        .then(response => {
+          // Handle the response
+          if (!response.ok) {
+            throw new Error(`HTTP error! Status: ${response.status}`);
+          }
+          return response.json(); // or response.text() for non-JSON responses
+        })
+        .then(data => {
+          // Process the data
+          coverageDetails = data;
+          sessionStorage.setItem('coverageDetails', JSON.stringify(data));
+ 
+        })
+        .catch(error => {
+          // Handle errors
+          console.error("Error:", error);
+        })
+        .finally(() => {
+          coverageDetails = JSON.parse(sessionStorage.getItem('coverageDetails'));
+          var coverageArray = [];
+          var coverageIndex = 0;
+          for (var i = 0; i < coverageDetails.entry.length; i++) {
+            var coverageItem = coverageDetails.entry[i].resource;
+            if (
+              coverageItem.hasOwnProperty("period") &&
+              coverageItem.hasOwnProperty("payor") &&
+              coverageItem.status == "active"
+            ) {
+              coverageArray[coverageIndex] = {
+                id: coverageItem.id,
+                payorId: coverageItem.payor[0].reference,
+                startDate: coverageItem.period.start,
+                endDate: coverageItem.period.end,
+              };
+              coverageIndex = coverageIndex + 1;
+            }
+          }
+          var insuranceDetail = coverageArray[0];
+          insuranceOrg = "";
+          insuranceOrg = insuranceDetail.payorId.split("/")[1];
+          var insurance =
+            "<b>From: </b>" +
+            insuranceDetail.startDate +
+            "  <b>To: </b>" +
+            insuranceDetail.endDate;
+          document.getElementById("planEffective").innerHTML = insurance;
+ 
+          const orgInterval = setInterval(() => {
+            var org = JSON.parse(sessionStorage.getItem('orgDetails'));
+            if(org !== null){
+              var orgDetails = org.find((o) => o.id === insuranceOrg);
+              document.getElementById("primaryPayer").innerHTML = orgDetails.name;
+            }
+           
+          }, 2000);
+ 
+          setTimeout(() => {
+            clearInterval(orgInterval);
+          },500000);
+        });
+ 
+ 
+      var prac = smart.patient.api.fetchAll({
+        type: "Practitioner",
+      });
+ 
+      prac.done(function (data) { sessionStorage.setItem('practitionerDetails', JSON.stringify(data)); });
+ 
+      //cerner
+ 
+      // Specify the base URL
+      const pracBaseUrl =  `https://${host}/r4/${instance}/Practitioner`;
+ 
+      // Specify query parameters
+      //const patientId = "12724069";
+      const pracId = 12732065; // implement a method to fetch practitioner Id from Encounter details from session storage
+      // Construct the URL with query parameters
+      const pracApiUrl = `${pracBaseUrl}/${pracId}`;
+      var practitionerDetails;
+ 
+      // Make the fetch API call
+      fetch(covApiUrl, fetchOptions)
+        .then(response => {
+          // Handle the response
+          if (!response.ok) {
+            throw new Error(`HTTP error! Status: ${response.status}`);
+          }
+          return response.json(); // or response.text() for non-JSON responses
+        })
+        .then(data => {
+          // Process the data
+          console.log("prac data", data);
+          practitionerDetails = data;
+          sessionStorage.setItem('practitionerDetails', JSON.stringify(data));
+ 
+        })
+        .catch(error => {
+          // Handle errors
+          console.error("Error:", error);
+        })
+ 
+      var org = smart.patient.api.fetchAll({
+        type: "Organization",
+      });
+ 
+      org.done(function (data) { sessionStorage.setItem('orgDetails', JSON.stringify(data)); });
+ 
+      var enc = smart.patient.api.fetchAll({
+        type: "Encounter",
+      });
+ 
+      // here, we are getting here first index of encounter Details array.
+ 
+      enc.done(function (data) { sessionStorage.setItem('encounterDetails', JSON.stringify(data[0])); });
+ 
+      console.log("111");
+      var docRef = smart.patient.api.fetchAll({
+        type: "DocumentReference",
+      });
+      console.log("222");
+ 
+      docRef.done(function (data) { sessionStorage.setItem('DocumentReference', JSON.stringify(data));});
+      console.log("333");
+      console.log("docRef:",docRef.done(function(data){console.log(data)}));
+ 
+ 
+      // $.when(pt, enc).done(function (patient, enc) {
+      //   var enc1 = enc[0];
+      //   enc1.done(function (data) { sessionStorage.setItem('encounterDetails', JSON.stringify(data)); });
+      // });
+ 
+ 
+ 
+ 
+      // var covorg = smart.cov.api.fetchAll({
+      //   type: "Organization",
+      // });
+ 
+      // covorg.done(function (data) { sessionStorage.setItem('covOrgDetails', JSON.stringify(data)); });
+ 
+      var insuranceOrg = "";
+ 
+      $.when(pt, obv).fail(onError);
+ 
+      $.when(pt, cov).done(function (patient, cov) {
+        var coverageArray = [];
+        var coverageIndex = 0;
+        for (var i = 0; i < cov.length; i++) {
+          var coverageItem = cov[i];
+          if (
+            coverageItem.hasOwnProperty("period") &&
+            coverageItem.hasOwnProperty("payor") &&
+            coverageItem.status == "active"
+          ) {
+            coverageArray[coverageIndex] = {
+              id: coverageItem.id,
+              payorId: coverageItem.payor[0].reference,
+              startDate: coverageItem.period.start,
+              endDate: coverageItem.period.end,
+            };
+            coverageIndex = coverageIndex + 1;
+          }
+        }
+        var insuranceDetail = coverageArray[0];
+        insuranceOrg = "";
+        insuranceOrg = insuranceDetail.payorId.split("/")[1];
+        var insurance =
+          "<b>From: </b>" +
+          insuranceDetail.startDate +
+          "  <b>To: </b>" +
+          insuranceDetail.endDate;
+        document.getElementById("planEffective").innerHTML = insurance;
+ 
+        $.when(insuranceOrg, org).done(function (insuranceOrg, org) {
+          var orgDetails = org.find((o) => o.id === insuranceOrg);
+          document.getElementById("primaryPayer").innerHTML = orgDetails.name;
+        });
+      });
+ 
+      $.when(pt, obv).done(function (patient, obv) {
+        var byCodes = smart.byCodes(obv, "code");
+        var gender = patient.gender;
+        //console.log("PATIENT DATA", patient);
+        var fname = "";
+        var lname = "";
+ 
+        var patient_id = patient.id;
+ 
+        if (typeof patient.name[0] !== "undefined") {
+          fname = patient.name[0].given.join(" ");
+          lname = patient.name[0].family;
+        }
+ 
+        var height = byCodes("8302-2");
+ 
+        var hdl = byCodes("2085-9");
+        var ldl = byCodes("2089-1");
+ 
+        document.getElementById("patient_id").innerHTML = patient.id;
+        document.getElementById("fname").innerHTML = fname + " " + lname;
+ 
+        document.getElementById("gender").innerHTML = gender;
+        document.getElementById("birthdate").innerHTML = patient.birthDate;
+ 
+        ret.resolve();
+      });
+    } else {
+      onError();
+    }
+  }
+ 
+  FHIR.oauth2.ready(onReady, onError);
+  return ret.promise();
+}
+ 
+/* Passing client id and scope to FHIR_extract function from launch component */
+export function FHIR_extract(client_id, scope) {
+  FHIR.oauth2.authorize({
+    client_id: client_id,
+    scope: scope,
+    redirect_uri: 'http://localhost:4200'
+  });
+ 
+  //alert("index");
+}
+ 
+export function drawVisualization(p) {
+  $("#holder").show();
+  $("#loading").hide();
+  $("#patient_id").html(p.patient_id);
+  $("#fname").html(p.fname);
+  $("#lname").html(p.lname);
+  $("#gender").html(p.gender);
+  $("#birthdate").html(p.birthdate);
+}
+(function (window) {
+  function defaultPatient() {
+    document.getElementById("coverageResult").innerHTML = "";
+    document.getElementById("pateint_id").innerHTML = "";
+    document.getElementById("fname").innerHTML = "";
+    document.getElementById("lname").innerHTML = "";
+    document.getElementById("gender").innerHTML = "";
+    document.getElementById("birthdate").innerHTML = "";
+  }
+ 
+  function getQuantityValueAndUnit(ob) {
+    if (
+      typeof ob != "undefined" &&
+      typeof ob.valueQuantity != "undefined" &&
+      typeof ob.valueQuantity.value != "undefined" &&
+      typeof ob.valueQuantity.unit != "undefined"
+    ) {
+      return ob.valueQuantity.value + " " + ob.valueQuantity.unit;
+    } else {
+      return undefined;
+    }
+  }
+})(window);
+
+/* checking for Cerner and FHIR Epic end*/
