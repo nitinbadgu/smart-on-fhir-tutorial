@@ -53,7 +53,7 @@
       const fetchOptions = {
         method: "GET", // or "POST", "PUT", etc.
         headers: {
-          //Accept: "application/fhir+json", 
+          Accept: "application/fhir+json", 
           Authorization: `Bearer ${access_token}`,
           // Add other headers if needed
         },
