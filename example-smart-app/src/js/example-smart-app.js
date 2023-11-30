@@ -78,10 +78,8 @@
           .catch(error => {
             // Handle errors
             console.error("Error:", error);
-          })
-          .finally(() => {
-            coverageDetails = JSON.parse(sessionStorage.getItem('coverageDetails'));
           });
+          
  
       var prac = smart.patient.api.fetchAll({
         type: "Practitioner",
