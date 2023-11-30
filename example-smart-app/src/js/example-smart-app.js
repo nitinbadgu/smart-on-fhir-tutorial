@@ -134,15 +134,15 @@
  
       enc.done(function (data) { sessionStorage.setItem('encounterDetails', JSON.stringify(data[0])); });
  
-      console.log("111");
+      //console.log("111");
       var docRef = smart.patient.api.fetchAll({
         type: "DocumentReference",
       });
-      console.log("222");
+      //console.log("222");
  
       docRef.done(function (data) { sessionStorage.setItem('DocumentReference', JSON.stringify(data));});
-      console.log("333");
-      console.log("docRef:",docRef.done(function(data){console.log(data)}));
+      //console.log("333");
+      //console.log("docRef:",docRef.done(function(data){console.log(data)}));
  
  
       // $.when(pt, enc).done(function (patient, enc) {
@@ -209,7 +209,7 @@
 
         console.log("Patient Details:", patient);
         console.log("Patient ID:", patient_id);
-        console.log("Patient dot ID:", patient.id);
+        //console.log("Patient dot ID:", patient.id);
  
         if (typeof patient.name[0] !== "undefined") {
           fname = patient.name[0].given.join(" ");
