@@ -38,90 +38,51 @@
       });
  
       cov.done(function (data) { sessionStorage.setItem('coverageDetails', JSON.stringify(data)); });
- 
-      const host = 'fhir-ehr-code.cerner.com';
-      const instance = 'ec2458f2-1e24-41c8-b71b-0e701af7583d';
+
+       //https://fhir.epic.com/interconnect-fhir-oauth/api/FHIR/R4/Coverage?patient=eTjDDWfopD0BnRlyEO2mGZQ3
+	const host = 'fhir.epic.com/interconnect-fhir-oauth/api/FHIR/R4/';
       // Specify the base URL
-      const covBaseUrl = `https://${host}/r4/${instance}/Coverage`;
+      const covBaseUrl = `https://${host}/Coverage`;
  
  
       // Construct the URL with query parameters
       const covApiUrl = `${covBaseUrl}?patient=${patient.id}`;
-      const bearerToken = JSON.parse(sessionStorage.getItem('tokenResponse')).access_token;
+      const bearerToken = JSON.parse(sessionStorage.getItem('tokenResponse'));
+      const access_token = bearerToken.access_token;
       var coverageDetails;
-      // Define additional options for the fetch call
       const fetchOptions = {
         method: "GET", // or "POST", "PUT", etc.
         headers: {
-          Accept: "application/fhir+json", // Replace with the appropriate media type
-          Authorization: `Bearer ${bearerToken}`,
+          //Accept: "application/fhir+json", 
+          Authorization: `Bearer ${access_token}`,
           // Add other headers if needed
         },
-        // Add other options like body, credentials, etc.
       };
       // Make the fetch API call
-      fetch(covApiUrl, fetchOptions)
-        .then(response => {
-          // Handle the response
-          if (!response.ok) {
-            throw new Error(`HTTP error! Status: ${response.status}`);
-          }
-          return response.json(); // or response.text() for non-JSON responses
-        })
-        .then(data => {
-          // Process the data
-          coverageDetails = data;
-          sessionStorage.setItem('coverageDetails', JSON.stringify(data));
- 
-        })
-        .catch(error => {
-          // Handle errors
-          console.error("Error:", error);
-        })
-        .finally(() => {
-          coverageDetails = JSON.parse(sessionStorage.getItem('coverageDetails'));
-          var coverageArray = [];
-          var coverageIndex = 0;
-          for (var i = 0; i < coverageDetails.entry.length; i++) {
-            var coverageItem = coverageDetails.entry[i].resource;
-            if (
-              coverageItem.hasOwnProperty("period") &&
-              coverageItem.hasOwnProperty("payor") &&
-              coverageItem.status == "active"
-            ) {
-              coverageArray[coverageIndex] = {
-                id: coverageItem.id,
-                payorId: coverageItem.payor[0].reference,
-                startDate: coverageItem.period.start,
-                endDate: coverageItem.period.end,
-              };
-              coverageIndex = coverageIndex + 1;
+      if (bearerToken.tenant === instance) {
+        fetch(covApiUrl, fetchOptions)
+          .then(response => {
+            // Handle the response
+            if (!response.ok) {
+              throw new Error(`HTTP error! Status: ${response.status}`);
             }
-          }
-          var insuranceDetail = coverageArray[0];
-          insuranceOrg = "";
-          insuranceOrg = insuranceDetail.payorId.split("/")[1];
-          var insurance =
-            "<b>From: </b>" +
-            insuranceDetail.startDate +
-            "  <b>To: </b>" +
-            insuranceDetail.endDate;
-          document.getElementById("planEffective").innerHTML = insurance;
+            return response.json(); // or response.text() for non-JSON responses
+          })
+          .then(data => {
+            // Process the data
+            coverageDetails = data;
+			console.log("coverageDetails from epic : ",coverageDetails);
+            sessionStorage.setItem('coverageDetails', JSON.stringify(data));
  
-          const orgInterval = setInterval(() => {
-            var org = JSON.parse(sessionStorage.getItem('orgDetails'));
-            if(org !== null){
-              var orgDetails = org.find((o) => o.id === insuranceOrg);
-              document.getElementById("primaryPayer").innerHTML = orgDetails.name;
-            }
-           
-          }, 2000);
- 
-          setTimeout(() => {
-            clearInterval(orgInterval);
-          },500000);
-        });
- 
+          })
+          .catch(error => {
+            // Handle errors
+            console.error("Error:", error);
+          })
+          .finally(() => {
+            coverageDetails = JSON.parse(sessionStorage.getItem('coverageDetails'));
+          });
+      }
  
       var prac = smart.patient.api.fetchAll({
         type: "Practitioner",
