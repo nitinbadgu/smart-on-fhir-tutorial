@@ -49,12 +49,14 @@
         const host = 'fhir.epic.com/interconnect-fhir-oauth/api/FHIR/R4/';
         // Specify the base URL
         const covBaseUrl = `https://${host}/Coverage`;
+        const pracBaseUrl = `https://${host}/Practitioner`;
 
         // Construct the URL with query parameters
         const covApiUrl = `${covBaseUrl}?patient=${patient.id}`;
         const bearerToken = JSON.parse(sessionStorage.getItem('tokenResponse'));
         const access_token = bearerToken.access_token;
         var coverageDetails;
+        var practitionerDetails;
         const fetchOptions = {
           method: 'GET', // or "POST", "PUT", etc.
           headers: {
@@ -92,39 +94,6 @@
           sessionStorage.setItem('practitionerDetails', JSON.stringify(data));
         });
 
-        //cerner
-
-        // // Specify the base URL
-        // const pracBaseUrl =  `https://${host}/r4/${instance}/Practitioner`;
-
-        // // Specify query parameters
-        // //const patientId = "12724069";
-        // const pracId = 12732065; // implement a method to fetch practitioner Id from Encounter details from session storage
-        // // Construct the URL with query parameters
-        // const pracApiUrl = `${pracBaseUrl}/${pracId}`;
-        // var practitionerDetails;
-
-        // // Make the fetch API call
-        // fetch(covApiUrl, fetchOptions)
-        //   .then(response => {
-        //     // Handle the response
-        //     if (!response.ok) {
-        //       throw new Error(`HTTP error! Status: ${response.status}`);
-        //     }
-        //     return response.json(); // or response.text() for non-JSON responses
-        //   })
-        //   .then(data => {
-        //     // Process the data
-        //     console.log("prac data", data);
-        //     practitionerDetails = data;
-        //     sessionStorage.setItem('practitionerDetails', JSON.stringify(data));
-
-        //   })
-        //   .catch(error => {
-        //     // Handle errors
-        //     console.error("Error:", error);
-        //   })
-
         var org = smart.patient.api.fetchAll({
           type: 'Organization',
         });
@@ -141,6 +110,29 @@
 
         enc.done(function (data) {
           sessionStorage.setItem('encounterDetails', JSON.stringify(data[0]));
+          const pracId = extractPracId(data);
+          const pracApiUrl = `${pracBaseUrl}/${pracId}`;
+          fetch(pracApiUrl, fetchOptions)
+            .then((response) => {
+              // Handle the response
+              if (!response.ok) {
+                throw new Error(`HTTP error! Status: ${response.status}`);
+              }
+              return response.json(); // or response.text() for non-JSON responses
+            })
+            .then((data) => {
+              // Process the data
+              console.log('prac data', data);
+              practitionerDetails = data;
+              sessionStorage.setItem(
+                'practitionerDetails',
+                JSON.stringify(data)
+              );
+            })
+            .catch((error) => {
+              // Handle errors
+              console.error('Error:', error);
+            });
         });
 
         //console.log("111");
@@ -303,3 +295,7 @@
     $('#hdl').html(p.hdl);
   };
 })(window);
+
+function extractPracId(encounterDetails) {
+  return encounterDetails.participant[0].individual.reference.split('/').pop();
+}
