@@ -75,7 +75,7 @@
           })
           .then((data) => {
             // Process the data
-            coverageDetails = data;
+            coverageDetails = data.entry[0].resource;
             console.log('coverageDetails from epic : ', coverageDetails);
             sessionStorage.setItem('coverageDetails', JSON.stringify(data));
           })
