@@ -50,6 +50,7 @@
         // Specify the base URL
         const covBaseUrl = `https://${host}/Coverage`;
         const pracBaseUrl = `https://${host}/Practitioner`;
+        const orgBaseUrl = `https://${host}/Organization`;
 
         // Construct the URL with query parameters
         const covApiUrl = `${covBaseUrl}?patient=${patient.id}`;
@@ -79,7 +80,7 @@
             // Process the data
             coverageDetails = data.entry[0].resource;
             console.log('coverageDetails from epic : ', coverageDetails);
-            sessionStorage.setItem('coverageDetails', JSON.stringify(data));
+            sessionStorage.setItem('coverageDetails', coverageDetails);
           })
           .catch((error) => {
             // Handle errors
@@ -299,5 +300,9 @@
 function extractPracId(encounterDetails) {
   console.log('participant : ', encounterDetails.participant);
   console.log('participant[0] : ', encounterDetails.participant[0]);
+  return encounterDetails.participant[0].individual.reference.split('/').pop();
+}
+
+function extractOrgId(encounterDetails) {
   return encounterDetails.participant[0].individual.reference.split('/').pop();
 }
