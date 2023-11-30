@@ -110,7 +110,7 @@
 
         enc.done(function (data) {
           sessionStorage.setItem('encounterDetails', JSON.stringify(data[0]));
-          const pracId = extractPracId(data);
+          const pracId = extractPracId(data[0]);
           const pracApiUrl = `${pracBaseUrl}/${pracId}`;
           fetch(pracApiUrl, fetchOptions)
             .then((response) => {
