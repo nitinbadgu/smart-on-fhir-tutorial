@@ -91,36 +91,36 @@
  
       //cerner
  
-      // Specify the base URL
-      const pracBaseUrl =  `https://${host}/r4/${instance}/Practitioner`;
+      // // Specify the base URL
+      // const pracBaseUrl =  `https://${host}/r4/${instance}/Practitioner`;
  
-      // Specify query parameters
-      //const patientId = "12724069";
-      const pracId = 12732065; // implement a method to fetch practitioner Id from Encounter details from session storage
-      // Construct the URL with query parameters
-      const pracApiUrl = `${pracBaseUrl}/${pracId}`;
-      var practitionerDetails;
+      // // Specify query parameters
+      // //const patientId = "12724069";
+      // const pracId = 12732065; // implement a method to fetch practitioner Id from Encounter details from session storage
+      // // Construct the URL with query parameters
+      // const pracApiUrl = `${pracBaseUrl}/${pracId}`;
+      // var practitionerDetails;
  
-      // Make the fetch API call
-      fetch(covApiUrl, fetchOptions)
-        .then(response => {
-          // Handle the response
-          if (!response.ok) {
-            throw new Error(`HTTP error! Status: ${response.status}`);
-          }
-          return response.json(); // or response.text() for non-JSON responses
-        })
-        .then(data => {
-          // Process the data
-          console.log("prac data", data);
-          practitionerDetails = data;
-          sessionStorage.setItem('practitionerDetails', JSON.stringify(data));
+      // // Make the fetch API call
+      // fetch(covApiUrl, fetchOptions)
+      //   .then(response => {
+      //     // Handle the response
+      //     if (!response.ok) {
+      //       throw new Error(`HTTP error! Status: ${response.status}`);
+      //     }
+      //     return response.json(); // or response.text() for non-JSON responses
+      //   })
+      //   .then(data => {
+      //     // Process the data
+      //     console.log("prac data", data);
+      //     practitionerDetails = data;
+      //     sessionStorage.setItem('practitionerDetails', JSON.stringify(data));
  
-        })
-        .catch(error => {
-          // Handle errors
-          console.error("Error:", error);
-        })
+      //   })
+      //   .catch(error => {
+      //     // Handle errors
+      //     console.error("Error:", error);
+      //   })
  
       var org = smart.patient.api.fetchAll({
         type: "Organization",
