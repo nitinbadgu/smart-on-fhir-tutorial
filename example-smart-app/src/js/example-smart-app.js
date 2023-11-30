@@ -297,5 +297,7 @@
 })(window);
 
 function extractPracId(encounterDetails) {
+  console.log('participant : ', encounterDetails.participant);
+  console.log('participant[0] : ', encounterDetails.participant[0]);
   return encounterDetails.participant[0].individual.reference.split('/').pop();
 }
