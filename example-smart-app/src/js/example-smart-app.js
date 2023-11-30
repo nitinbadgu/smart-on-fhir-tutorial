@@ -59,7 +59,7 @@
         },
       };
       // Make the fetch API call
-      if (bearerToken.tenant === instance) {
+   
         fetch(covApiUrl, fetchOptions)
           .then(response => {
             // Handle the response
@@ -82,7 +82,6 @@
           .finally(() => {
             coverageDetails = JSON.parse(sessionStorage.getItem('coverageDetails'));
           });
-      }
  
       var prac = smart.patient.api.fetchAll({
         type: "Practitioner",
